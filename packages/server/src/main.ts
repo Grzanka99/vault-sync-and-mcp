@@ -20,7 +20,7 @@ ${adminUsage()}
 Options (flag / env):
   --vault <dir>    MCP_VAULT_DIR      folder with the notes (default ./vault)
   --data <dir>     MCP_VAULT_DATA     index database folder (default ./data)
-  --host <host>    HOST               default 127.0.0.1 (use 0.0.0.0 in Docker)
+  --host <host>    HOST               default 127.0.0.1 (0.0.0.0 to allow other devices)
   --port <port>    PORT               default 8787
   --exclude <a,b>  MCP_VAULT_EXCLUDE  extra ignore patterns
   --trust-proxy    MCP_VAULT_TRUST_PROXY=true   behind a reverse proxy
@@ -33,7 +33,7 @@ async function openStore(config: Config): Promise<Store> {
   return new Store(nodePath.join(config.dataDir, "index.db"));
 }
 
-/** Create the first user from env vars, so a fresh Docker container is usable right away. */
+/** Create the first user from env vars, so a fresh container is usable right away. */
 async function bootstrapAdmin(store: Store): Promise<void> {
   const username = process.env.MCP_VAULT_ADMIN_USER;
   const password = process.env.MCP_VAULT_ADMIN_PASSWORD;

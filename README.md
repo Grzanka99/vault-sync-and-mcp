@@ -17,7 +17,7 @@ pnpm server user add me                 # asks for a password
 pnpm server serve --vault ~/notes --host 0.0.0.0
 ```
 
-Or Docker: edit the user and password in `docker-compose.yml`, then `docker compose up -d`.
+Or with Podman: `cp .env.example .env`, set the user and password there, then `podman compose up -d`.
 
 Phones need **HTTPS** (iOS blocks plain http/ws). Put the server behind Caddy, nginx or `tailscale serve`, and set `MCP_VAULT_TRUST_PROXY=true`.
 
@@ -50,7 +50,7 @@ Settings folder sync is optional. The window layout and this plugin's login neve
 }
 ```
 
-In Docker: `docker exec -i <container> node packages/server/src/main.ts mcp`.
+In Podman: `podman exec -i mcp-vault node packages/server/src/main.ts mcp`.
 
 **Other machine:** create a token, then use HTTP MCP:
 

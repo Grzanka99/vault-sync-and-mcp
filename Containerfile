@@ -1,5 +1,7 @@
-# mcp-vault server. Notes live in /vault, the index database in /data.
-FROM node:24-slim
+# mcp-vault server image (Podman). Notes live in /vault, the index database in /data.
+# Runs as root inside the container: with rootless Podman that is your own user on the host,
+# so files in the vault folder stay owned by you.
+FROM docker.io/library/node:24-slim
 
 WORKDIR /app
 RUN npm install -g pnpm@12.14.0
@@ -12,9 +14,6 @@ RUN pnpm install --prod --frozen-lockfile --ignore-scripts --filter @mcp-vault/s
 
 COPY packages/core packages/core
 COPY packages/server packages/server
-
-RUN mkdir -p /vault /data && chown node:node /vault /data
-USER node
 
 ENV HOST=0.0.0.0 \
     PORT=8787 \

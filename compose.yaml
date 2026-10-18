@@ -1,0 +1,20 @@
+# podman compose up -d
+services:
+  mcp-vault:
+    build:
+      context: .
+      dockerfile: Containerfile
+    container_name: mcp-vault
+    restart: unless-stopped
+    ports:
+      - "8787:8787"
+    volumes:
+      # :Z relabels the folders for SELinux (Fedora, RHEL); harmless elsewhere.
+      - ./vault:/vault:Z
+      - ./data:/data:Z
+    environment:
+      # First user, created on first start. Put the values in .env (never committed), see .env.example.
+      MCP_VAULT_ADMIN_USER: ${MCP_VAULT_ADMIN_USER:-}
+      MCP_VAULT_ADMIN_PASSWORD: ${MCP_VAULT_ADMIN_PASSWORD:-}
+      # Set to "true" when running behind a reverse proxy (Caddy, nginx, Tailscale serve, …).
+      MCP_VAULT_TRUST_PROXY: "false"
