@@ -35,6 +35,7 @@ export default class VaultSyncPlugin extends Plugin {
   private pollTimer: number | null = null;
   private reconnectTimer: number | null = null;
   private statusBar: HTMLElement | null = null;
+  private reportedErrors = new Set<string>();
 
   async onload(): Promise<void> {
     await this.loadSettings();
@@ -182,7 +183,12 @@ export default class VaultSyncPlugin extends Plugin {
       notify(`Sync conflict: both versions kept, the other one is in "${copy}"`, 10_000);
     }
     for (const failure of report.errors) {
-      notify(`Sync failed for ${failure.path}: ${failure.error}`);
+      // A broken file fails on every pass; say so once, not every few seconds.
+      const key = `${failure.path}\n${failure.error}`;
+      if (!this.reportedErrors.has(key)) {
+        this.reportedErrors.add(key);
+        notify(`Sync failed for ${failure.path}: ${failure.error}`);
+      }
     }
     if (manual) {
       const changed = report.uploaded.length + report.downloaded.length + report.deleted.length;

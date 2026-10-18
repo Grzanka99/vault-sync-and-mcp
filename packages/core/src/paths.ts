@@ -5,9 +5,18 @@ export function normalizePath(path: string): string {
   return parts.filter((part) => part !== "").join("/");
 }
 
+/**
+ * A path every device can store: relative, no "..", no backslash (a separator on Windows,
+ * and how "\\" got turned into an empty path once), no control characters.
+ */
 export function isSafePath(path: string): boolean {
-  if (path === "" || path.includes("\0") || path.startsWith("/")) {
+  if (path === "" || path.startsWith("/") || path.includes("\\")) {
     return false;
+  }
+  for (const ch of path) {
+    if (ch.charCodeAt(0) < 32) {
+      return false;
+    }
   }
   // Windows drive letter, e.g. "C:"
   if (path.length >= 2 && path[1] === ":") {
@@ -210,6 +219,13 @@ export const DEFAULT_EXCLUDES = [
   ".DS_Store",
   "Thumbs.db",
   "*.mcpvault-tmp",
+  // Editor leftovers: vim swap/backup files and its "4913" write test, emacs lock files.
+  "*.swp",
+  "*.swo",
+  "*.swx",
+  "*~",
+  "4913",
+  ".#*",
 ];
 
 export interface ClientFilterOptions {

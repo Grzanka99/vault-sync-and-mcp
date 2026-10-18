@@ -68,3 +68,19 @@ describe("paths", () => {
     expect(conflictPath("README", "a/b", date)).toBe("README (conflict ab 2026-10-18 15-30-12)");
   });
 });
+
+describe("unsyncable names", () => {
+  it("rejects backslashes and control characters", () => {
+    expect(isSafePath("\\")).toBe(false);
+    expect(isSafePath("a\\b.md")).toBe(false);
+    expect(isSafePath("bad\u0007name.md")).toBe(false);
+  });
+
+  it("skips editor leftovers", () => {
+    const filter = createClientFilter({ configDir: ".obsidian", syncConfig: false });
+    expect(filter.allows("4913")).toBe(false);
+    expect(filter.allows("Welcome.md~")).toBe(false);
+    expect(filter.allows("Notes/plan.swp")).toBe(false);
+    expect(filter.allows("Welcome.md")).toBe(true);
+  });
+});

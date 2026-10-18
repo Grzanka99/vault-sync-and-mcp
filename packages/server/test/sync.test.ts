@@ -163,3 +163,16 @@ describe("auth", () => {
     await expect(stale.changes(0)).rejects.toMatchObject({ status: 401 });
   });
 });
+
+describe("odd file names on the server", () => {
+  it("never offers a file named \\ to clients", async () => {
+    const laptop = await server.newClient("laptop");
+    await fsp.writeFile(nodePath.join(server.vaultDir, "\\"), "vim backup?");
+    await fsp.writeFile(nodePath.join(server.vaultDir, "ok.md"), "fine\n");
+    await server.vault.index.scanAll();
+
+    const report = await laptop.engine.sync();
+    expect(report.errors).toEqual([]);
+    expect(report.downloaded).toEqual(["ok.md"]);
+  });
+});

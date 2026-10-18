@@ -96,6 +96,11 @@ export class VaultIndex extends EventEmitter<{ change: [VaultChange] }> {
       indexed = this.store.liveFiles(relativeFolder);
     }
     for (const entry of indexed) {
+      // Paths no device can store (indexed by an older version) are dropped from the feed.
+      if (!isSafePath(entry.path)) {
+        this.recordDelete(entry.path, DISK_ACTOR);
+        continue;
+      }
       // Files excluded later stay in the index: deleting them would delete them on every client.
       if (!seen.has(entry.path) && this.isAllowed(entry.path)) {
         this.recordDelete(entry.path, DISK_ACTOR);
