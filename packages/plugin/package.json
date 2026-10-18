@@ -1,0 +1,13 @@
+{
+  "name": "@mcp-vault/plugin",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "vp pack",
+    "dev": "vp pack --watch"
+  },
+  "dependencies": {
+    "@mcp-vault/core": "workspace:*"
+  }
+}

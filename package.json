@@ -1,0 +1,22 @@
+{
+  "name": "mcp-vault",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "prepare": "vp config --no-agent",
+    "server": "node packages/server/src/main.ts",
+    "build:plugin": "pnpm -F @mcp-vault/plugin build",
+    "install:plugin": "pnpm build:plugin && node scripts/install-plugin.ts"
+  },
+  "devDependencies": {
+    "@types/node": "^26.6.5",
+    "@types/ws": "^8.18.2",
+    "obsidian": "^1.14.4",
+    "typescript": "^7.0.2",
+    "vite-plus": "^1.3.0"
+  },
+  "engines": {
+    "node": ">=24"
+  },
+  "packageManager": "pnpm@12.14.0"
+}
