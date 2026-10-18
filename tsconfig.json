@@ -13,5 +13,5 @@
     "skipLibCheck": true,
     "noUnusedLocals": true
   },
-  "include": ["packages/*/src", "test"]
+  "include": ["packages/*/src", "packages/*/test", "packages/*/vite.config.ts", "scripts", "vite.config.ts"]
 }

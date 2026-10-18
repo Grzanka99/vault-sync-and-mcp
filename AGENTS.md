@@ -23,4 +23,5 @@ SQLite is only a helper: hashes, versions, users, search. Files on disk are the 
 - No ternaries
 - Always `{ }` on if/for/while
 - Max 5000 tokens per file (pre-commit checks). Too big → split.
+- No secrets in git: tokens, passwords, keys go in env vars or `.env` (pre-commit checks)
 - pnpm + `vp`: `vp check` (lint, fmt, types), `vp test`

@@ -1,2 +1,3 @@
 node scripts/check-staged-size.ts
+node scripts/check-staged-secrets.ts
 vp staged
