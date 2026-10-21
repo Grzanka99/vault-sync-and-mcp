@@ -7,14 +7,15 @@ services:
     container_name: mcp-vault
     restart: unless-stopped
     ports:
-      - "8787:8787"
+      - "${MCP_VAULT_PORT:-8787}:8787"
     volumes:
+      # Where your notes live. Use an absolute path (e.g. /home/ubuntu/vault).
       # :Z relabels the folders for SELinux (Fedora, RHEL); harmless elsewhere.
-      - ./vault:/vault:Z
-      - ./data:/data:Z
+      - ${MCP_VAULT_DIR:-./vault}:/vault:Z
+      - ${MCP_VAULT_DATA_DIR:-./data}:/data:Z
     environment:
       # First user, created on first start. Put the values in .env (never committed), see .env.example.
       MCP_VAULT_ADMIN_USER: ${MCP_VAULT_ADMIN_USER:-}
       MCP_VAULT_ADMIN_PASSWORD: ${MCP_VAULT_ADMIN_PASSWORD:-}
       # Set to "true" when running behind a reverse proxy (Caddy, nginx, Tailscale serve, …).
-      MCP_VAULT_TRUST_PROXY: "false"
+      MCP_VAULT_TRUST_PROXY: ${MCP_VAULT_TRUST_PROXY:-false}
