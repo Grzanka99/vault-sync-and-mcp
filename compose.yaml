@@ -5,7 +5,7 @@ services:
       context: .
       dockerfile: Containerfile
     container_name: mcp-vault
-    restart: unless-stopped
+    restart: always
     ports:
       - "${MCP_VAULT_PORT:-8787}:8787"
     volumes:
