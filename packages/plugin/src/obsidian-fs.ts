@@ -101,11 +101,19 @@ export class ObsidianFs implements LocalFs {
     await this.removeEmptyFolders(parent);
   }
 
+  // Not trashFile: `children` leaves out hidden files, and trashFile would take those with it.
+  // Those files never sync, so the server couldn't bring them back. Without `force`,
+  // Vault.delete refuses a folder that still has hidden children.
   private async removeEmptyFolders(folder: TFolder | null): Promise<void> {
     let current = folder;
     while (current && !current.isRoot() && current.children.length === 0) {
       const parent = current.parent;
-      await this.app.fileManager.trashFile(current);
+      try {
+        await this.app.vault.delete(current);
+      } catch {
+        // Hidden files still in it: keep the folder, and its parents.
+        return;
+      }
       current = parent;
     }
   }
