@@ -29,7 +29,7 @@ All options: `pnpm server help`.
 pnpm install:plugin /path/to/your/vault
 ```
 
-Then in Obsidian: Settings → Community plugins → enable **MCP Vault Sync**. In its settings, enter the server URL and log in.
+Needs Obsidian 1.13 or newer. Then in Obsidian: Settings → Community plugins → enable **MCP Vault Sync**. In its settings, enter the server URL and log in.
 
 For your phone, copy `packages/plugin/dist/main.js` and `manifest.json` into `<vault>/.obsidian/plugins/mcp-vault-sync/` (or let the desktop sync it: turn on "Sync settings folder").
 
