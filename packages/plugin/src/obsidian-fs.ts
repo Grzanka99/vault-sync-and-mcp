@@ -105,7 +105,7 @@ export class ObsidianFs implements LocalFs {
     let current = folder;
     while (current && !current.isRoot() && current.children.length === 0) {
       const parent = current.parent;
-      await this.app.vault.delete(current);
+      await this.app.fileManager.trashFile(current);
       current = parent;
     }
   }

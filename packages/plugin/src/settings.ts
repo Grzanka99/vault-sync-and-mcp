@@ -68,9 +68,9 @@ export class SyncSettingTab extends PluginSettingTab {
 
     const urlSetting = new Setting(container)
       .setName("Server URL")
-      .setDesc("Where mcp-vault runs, e.g. https://notes.example.com. Use HTTPS for mobile.");
+      .setDesc("Address of your mcp-vault server. Mobile needs HTTPS.");
     urlSetting.addText((text) => {
-      text.setPlaceholder("https://…").setValue(settings.serverUrl);
+      text.setPlaceholder("https://notes.example.com").setValue(settings.serverUrl);
       text.setDisabled(settings.token !== "");
       text.onChange(async (value) => {
         settings.serverUrl = value.trim();

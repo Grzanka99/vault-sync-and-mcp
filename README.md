@@ -35,6 +35,13 @@ For your phone, copy `packages/plugin/dist/main.js` and `manifest.json` into `<v
 
 Settings folder sync is optional. The window layout and this plugin's login never sync.
 
+### Network use and accounts
+
+- **Network use:** the plugin talks only to the server URL you enter. It sends and receives your vault's files over HTTPS so they stay in sync, and keeps a WebSocket open to hear about changes right away. Nothing goes anywhere else.
+- **Account required:** you need an account on your own mcp-vault server (`pnpm server user add`). There is no hosted service and nothing to pay for.
+- **No telemetry:** the plugin collects no usage data.
+- **Files:** the plugin reads and writes only inside the vault. With "Sync settings folder" on, that includes the vault's settings folder.
+
 ## Connect an agent
 
 **Same machine (default):** `mcp-vault serve` writes `data/local-agent.token`. The stdio command finds it on its own:

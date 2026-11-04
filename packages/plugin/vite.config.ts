@@ -1,6 +1,7 @@
 import { defineConfig } from "vite-plus";
 
 // Obsidian loads one CommonJS file (main.js) next to manifest.json; it provides `obsidian` itself.
+// manifest.json lives at the repo root: the Obsidian community directory reads it from there.
 export default defineConfig({
   pack: {
     entry: { main: "src/main.ts" },
@@ -16,6 +17,6 @@ export default defineConfig({
       neverBundle: ["obsidian", "electron"],
       alwaysBundle: ["@mcp-vault/core"],
     },
-    copy: ["manifest.json"],
+    copy: ["../../manifest.json"],
   },
 });
