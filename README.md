@@ -37,7 +37,7 @@ Settings folder sync is optional. The window layout and this plugin's login neve
 
 ### Network use and accounts
 
-- **Network use:** the plugin talks only to the server URL you enter. It sends and receives your vault's files over HTTPS so they stay in sync, and keeps a WebSocket open to hear about changes right away. Nothing goes anywhere else.
+- **Network use:** the plugin talks only to the server URL you enter. It sends and receives your vault's files so they stay in sync, and keeps a WebSocket open to hear about changes right away. Use an `https://` URL so this traffic is encrypted; with `http://` it is not, and iOS refuses it. Nothing goes anywhere else.
 - **Account required:** you need an account on your own mcp-vault server (`pnpm server user add`). There is no hosted service and nothing to pay for.
 - **No telemetry:** the plugin collects no usage data.
 - **Files:** the plugin reads and writes only inside the vault. With "Sync settings folder" on, that includes the vault's settings folder.
