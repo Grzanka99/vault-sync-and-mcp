@@ -14,6 +14,8 @@ export class LoginModal extends Modal {
   private password = "";
   private deviceName: string;
   private busy = false;
+  /** Closing the modal cancels the login: a response that arrives later is thrown away. */
+  private closed = false;
 
   constructor(app: App, plugin: VaultSyncPlugin, onLoggedIn: () => void) {
     super(app);
@@ -59,6 +61,7 @@ export class LoginModal extends Modal {
   }
 
   onClose(): void {
+    this.closed = true;
     this.password = "";
     this.contentEl.empty();
   }
@@ -76,6 +79,11 @@ export class LoginModal extends Modal {
     const client = new VaultClient({ baseUrl: settings.serverUrl, http: obsidianHttp });
     try {
       const result = await client.login(this.username, this.password, this.deviceName);
+      if (this.closed) {
+        // The user gave up on this login. Don't leave an unused device token behind on the server.
+        await logoutQuietly(client);
+        return;
+      }
       settings.deviceName = this.deviceName;
       await this.plugin.onLoggedIn(result.token, result.tokenId, result.username);
       notify(`Logged in as ${result.username}. Syncing…`);
@@ -85,5 +93,13 @@ export class LoginModal extends Modal {
       notify(`Login failed: ${errorMessage(error)}`);
     }
     this.busy = false;
+  }
+}
+
+async function logoutQuietly(client: VaultClient): Promise<void> {
+  try {
+    await client.logout();
+  } catch {
+    // Server unreachable: the token stays listed there and can be revoked with `token revoke`.
   }
 }
