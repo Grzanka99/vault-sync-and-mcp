@@ -1,7 +1,7 @@
 // Login form. A form with several required fields belongs in a modal, not in the settings tab.
 // The password is only kept while the modal is open; the server hands back a per-device token instead.
 
-import { Modal, Setting, type App } from "obsidian";
+import { Modal, Setting, type App, type ButtonComponent } from "obsidian";
 import { VaultClient, errorMessage } from "@mcp-vault/core";
 import type VaultSyncPlugin from "./main.ts";
 import { notify } from "./notify.ts";
@@ -9,18 +9,17 @@ import { obsidianHttp } from "./obsidian-http.ts";
 
 export class LoginModal extends Modal {
   private plugin: VaultSyncPlugin;
-  private onLoggedIn: () => void;
   private username = "";
   private password = "";
   private deviceName: string;
   private busy = false;
+  private loginButton: ButtonComponent | null = null;
   /** Closing the modal cancels the login: a response that arrives later is thrown away. */
   private closed = false;
 
-  constructor(app: App, plugin: VaultSyncPlugin, onLoggedIn: () => void) {
+  constructor(app: App, plugin: VaultSyncPlugin) {
     super(app);
     this.plugin = plugin;
-    this.onLoggedIn = onLoggedIn;
     this.deviceName = plugin.settings.deviceName;
   }
 
@@ -53,6 +52,7 @@ export class LoginModal extends Modal {
         });
       });
     new Setting(contentEl).addButton((button) => {
+      this.loginButton = button;
       button
         .setButtonText("Log in")
         .setCta()
@@ -75,7 +75,7 @@ export class LoginModal extends Modal {
       notify("Fill in server URL, username and password");
       return;
     }
-    this.busy = true;
+    this.setBusy(true);
     const client = new VaultClient({ baseUrl: settings.serverUrl, http: obsidianHttp });
     try {
       const result = await client.login(this.username, this.password, this.deviceName);
@@ -88,11 +88,24 @@ export class LoginModal extends Modal {
       await this.plugin.onLoggedIn(result.token, result.tokenId, result.username);
       notify(`Logged in as ${result.username}. Syncing…`);
       this.close();
-      this.onLoggedIn();
     } catch (error) {
       notify(`Login failed: ${errorMessage(error)}`);
     }
-    this.busy = false;
+    this.setBusy(false);
+  }
+
+  /** Shows that the request is running, so nobody closes the modal on a slow server and loses the login. */
+  private setBusy(busy: boolean): void {
+    this.busy = busy;
+    if (!this.loginButton) {
+      return;
+    }
+    this.loginButton.setDisabled(busy);
+    if (busy) {
+      this.loginButton.setButtonText("Logging in…");
+    } else {
+      this.loginButton.setButtonText("Log in");
+    }
   }
 }
 

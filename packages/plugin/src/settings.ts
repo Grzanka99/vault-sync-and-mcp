@@ -27,7 +27,7 @@ type SettingKey = keyof SyncSettings;
 /** Changing these changes what counts as syncable, so the whole change feed is read again. */
 const FILTER_KEYS: SettingKey[] = ["syncConfig", "excludes"];
 
-const MIN_POLL_SECONDS = 10;
+export const MIN_POLL_SECONDS = 10;
 
 function defaultDeviceName(): string {
   if (Platform.isMobile) {
@@ -50,6 +50,8 @@ export const DEFAULT_SETTINGS: SyncSettings = {
 
 export class SyncSettingTab extends PluginSettingTab {
   private plugin: VaultSyncPlugin;
+  /** The Account row while it is on screen, so its status text can be kept current. */
+  private accountRow: Setting | null = null;
 
   constructor(app: App, plugin: VaultSyncPlugin) {
     super(app, plugin);
@@ -84,11 +86,17 @@ export class SyncSettingTab extends PluginSettingTab {
       {
         name: "Account",
         render: (setting) => {
+          this.accountRow = setting;
           if (this.loggedIn) {
             this.renderLoggedIn(setting);
           } else {
             this.renderLoggedOut(setting);
           }
+          return () => {
+            if (this.accountRow === setting) {
+              this.accountRow = null;
+            }
+          };
         },
       },
       {
@@ -158,11 +166,25 @@ export class SyncSettingTab extends PluginSettingTab {
     await this.plugin.saveSettings({ filterChanged });
   }
 
-  private renderLoggedIn(setting: Setting): void {
+  /**
+   * The plugin calls this when the sync status changes. Only the text is replaced:
+   * rebuilding the tab would take the cursor out of a field the user is typing in.
+   */
+  showStatus(): void {
+    if (this.accountRow && this.loggedIn) {
+      this.accountRow.setDesc(this.accountText());
+    }
+  }
+
+  private accountText(): string {
     const settings = this.plugin.settings;
-    setting.setDesc(
-      `Logged in as ${settings.username} on "${settings.deviceName}". ${this.plugin.statusText}`,
-    );
+    return `Logged in as ${settings.username} on "${settings.deviceName}". ${this.plugin.statusText}`;
+  }
+
+  // Logging in or out rebuilds the tab from the plugin (see main.ts), also when it happens
+  // without a click here, e.g. the server revoked this device.
+  private renderLoggedIn(setting: Setting): void {
+    setting.setDesc(this.accountText());
     setting.addButton((button) => {
       button.setButtonText("Sync now").onClick(() => this.plugin.syncNow(true));
     });
@@ -170,10 +192,7 @@ export class SyncSettingTab extends PluginSettingTab {
       button
         .setButtonText("Log out")
         .setDestructive()
-        .onClick(async () => {
-          await this.plugin.logout();
-          this.update();
-        });
+        .onClick(() => this.plugin.logout());
     });
   }
 
@@ -184,7 +203,7 @@ export class SyncSettingTab extends PluginSettingTab {
         .setButtonText("Log in")
         .setCta()
         .onClick(() => {
-          new LoginModal(this.app, this.plugin, () => this.update()).open();
+          new LoginModal(this.app, this.plugin).open();
         });
     });
   }
