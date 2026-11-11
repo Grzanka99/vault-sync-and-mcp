@@ -1,0 +1,57 @@
+# Pushing a tag builds the plugin and drafts a GitHub release with the two files Obsidian downloads.
+# The tag must be exactly the version in manifest.json, e.g. 0.2.0 (no "v").
+name: Release Obsidian plugin
+
+on:
+  push:
+    tags:
+      - "*"
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      # For the attestation: proof that the release files were built here, from this commit.
+      id-token: write
+      attestations: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Check that the tag matches manifest.json
+        run: |
+          version="$(node -p "require('./manifest.json').version")"
+          if [ "$GITHUB_REF_NAME" != "$version" ]; then
+            echo "Tag $GITHUB_REF_NAME is not the manifest.json version $version" >&2
+            exit 1
+          fi
+
+      # Takes the pnpm version from "packageManager" in package.json.
+      - uses: pnpm/action-setup@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: pnpm
+
+      - name: Build plugin
+        run: |
+          pnpm install --frozen-lockfile
+          pnpm build:plugin
+
+      # GitHub only offers attestations for public repos (or paid organizations).
+      - name: Attest the release files
+        uses: actions/attest@v4
+        with:
+          subject-path: |
+            packages/plugin/dist/main.js
+            packages/plugin/dist/manifest.json
+
+      - name: Draft the release
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: |
+          gh release create "$GITHUB_REF_NAME" \
+            --title "$GITHUB_REF_NAME" \
+            --draft \
+            packages/plugin/dist/main.js packages/plugin/dist/manifest.json

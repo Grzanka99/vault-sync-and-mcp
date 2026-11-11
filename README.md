@@ -91,3 +91,11 @@ pnpm build:plugin
 ```
 
 Code rules are in [AGENTS.md](AGENTS.md).
+
+### Release the plugin
+
+Obsidian installs the plugin from a GitHub release whose tag is exactly the `version` in `manifest.json`.
+
+1. Set the new `version` in `manifest.json` and merge it to `main`.
+2. Tag that commit with the same version, no `v` in front: `git tag 0.2.0 && git push origin 0.2.0`.
+3. The release workflow builds the plugin and drafts a release with `main.js` and `manifest.json`. Add notes and publish it.
