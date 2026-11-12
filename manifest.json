@@ -2,7 +2,7 @@
   "id": "mcp-vault-sync",
   "name": "MCP Vault Sync",
   "version": "0.1.0",
-  "minAppVersion": "1.5.7",
+  "minAppVersion": "1.13.0",
   "description": "Sync your vault with a self-hosted mcp-vault server, where agents can read and edit notes over MCP.",
   "author": "Grzanka99",
   "isDesktopOnly": false

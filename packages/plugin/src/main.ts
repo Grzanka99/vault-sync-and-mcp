@@ -17,7 +17,7 @@ import { LiveConnection } from "./live.ts";
 import { notify } from "./notify.ts";
 import { ObsidianFs } from "./obsidian-fs.ts";
 import { obsidianHttp } from "./obsidian-http.ts";
-import { DEFAULT_SETTINGS, SyncSettingTab, type SyncSettings } from "./settings.ts";
+import { DEFAULT_SETTINGS, MIN_POLL_SECONDS, SyncSettingTab, type SyncSettings } from "./settings.ts";
 
 /** Wait this long after the last edit before syncing, so typing doesn't sync every keystroke. */
 const EDIT_DEBOUNCE_MS = 1500;
@@ -35,13 +35,15 @@ export default class VaultSyncPlugin extends Plugin {
   private pollTimer: number | null = null;
   private reconnectTimer: number | null = null;
   private statusBar: HTMLElement | null = null;
+  private settingTab: SyncSettingTab | null = null;
   private reportedErrors = new Set<string>();
 
   async onload(): Promise<void> {
     await this.loadSettings();
     this.state = await this.loadState();
 
-    this.addSettingTab(new SyncSettingTab(this.app, this));
+    this.settingTab = new SyncSettingTab(this.app, this);
+    this.addSettingTab(this.settingTab);
     this.statusBar = this.addStatusBarItem();
     this.addRibbonIcon("refresh-cw", "Sync vault now", () => this.syncNow(true));
     this.addCommand({ id: "sync-now", name: "Sync now", callback: () => this.syncNow(true) });
@@ -142,6 +144,7 @@ export default class VaultSyncPlugin extends Plugin {
     this.registerEvent(this.app.vault.on("delete", onChange));
     this.registerEvent(this.app.vault.on("rename", onChange));
     // Phones suspend apps: catch up as soon as we're visible again.
+    // The main window's `document` on purpose, not `activeDocument`: a popout window can be closed.
     this.registerDomEvent(document, "visibilitychange", () => {
       if (document.visibilityState === "visible") {
         this.live?.wake();
@@ -223,6 +226,7 @@ export default class VaultSyncPlugin extends Plugin {
   private setStatus(text: string): void {
     this.statusText = text;
     this.statusBar?.setText(`Vault sync: ${text}`);
+    this.settingTab?.showStatus();
   }
 
   // ── login ──
@@ -233,6 +237,7 @@ export default class VaultSyncPlugin extends Plugin {
     this.settings.username = username;
     await this.saveData(this.settings);
     this.connect();
+    this.settingTab?.update();
   }
 
   async logout(): Promise<void> {
@@ -255,6 +260,8 @@ export default class VaultSyncPlugin extends Plugin {
     this.settings.tokenId = 0;
     await this.saveData(this.settings);
     this.setStatus("not logged in");
+    // Also reached without a click in settings (login expired or revoked), so the tab is rebuilt from here.
+    this.settingTab?.update();
   }
 
   // ── persistence ──
@@ -264,6 +271,11 @@ export default class VaultSyncPlugin extends Plugin {
     this.settings = { ...DEFAULT_SETTINGS };
     if (typeof saved === "object" && saved !== null) {
       Object.assign(this.settings, saved);
+    }
+    // The settings tab only checks what is typed into it, not what is already in data.json.
+    const poll: unknown = this.settings.pollSeconds;
+    if (typeof poll !== "number" || Number.isNaN(poll) || poll < MIN_POLL_SECONDS) {
+      this.settings.pollSeconds = DEFAULT_SETTINGS.pollSeconds;
     }
   }
 
